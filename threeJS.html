@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<title>three.js Vestoo</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	<style>
+		body {
+			margin: 0px;
+			text-align: center;
+			font-size: 40px;
+		}
+	</style>
+</head>
+
+<body>
+	<h1>Vestoo</h1>
+	<div id="ContainerForCanvas"></div>
+	<div>
+		<h2>About us</h2>
+	</div>
+	<script src="three.min.js"></script>
+	<script src="three.js"></script>
+	<script>
+		let container, stats;
+		let camera, scene, renderer;
+		let mouseX = 0, mouseY = 0;
+		let windowHalfX = window.innerWidth / 2;
+		let windowHalfY = window.innerHeight / 2;
+		init();
+		animate();
+		function init() {
+			container = document.getElementById('ContainerForCanvas');
+
+			//Perspective camera gives view like in real life(
+			//viewing angle, proportions,distance where we see object )
+			camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 2000);
+			camera.position.z = 700;
+
+			// SCENE
+			scene = new THREE.Scene();
+
+
+
+			//This light globally illuminates all objects in the scene equally. 
+			//This light cannot be used to cast shadows as it does not have a direction.
+			// 0x444444 soft white light
+
+			let ambient = new THREE.AmbientLight(0x444444);
+			scene.add(ambient);
+
+			//The common use case for this is to simulate daylight;
+			//Gives shadow, has a direction.
+
+			let directionalLight = new THREE.DirectionalLight(0xffeedd);
+			directionalLight.position.set(1, 1, 1).normalize();
+			scene.add(directionalLight);
+
+			//LOAD JSON and add to the scene
+
+			// let objectLoader = new THREE.ObjectLoader();
+			// objectLoader.load("Earth.json", function (obj) {
+			// 	console.log(obj);
+			// 	scene.add(obj);
+			// });
+
+			var earthTexture = new THREE.Texture();
+			var loader = new THREE.ImageLoader();
+			loader.load('NE.jpg', function (event) {
+				earthTexture.image = event;
+				earthTexture.needsUpdate = true;
+			});
+			//MARKERS
+			picGeo = new THREE.ConeBufferGeometry(10, 10);
+			pic = new THREE.Mesh(picGeo);
+
+            var material = new THREE.MeshBasicMaterial({ map: earthTexture });
+			let objectLoader = new THREE.BufferGeometryLoader();
+			objectLoader.load('geometry.json',
+				function (geometry) {
+					
+					object = new THREE.Mesh(geometry, material);
+                  
+					var fontLoader = new THREE.FontLoader();
+					fontLoader.load('Coiny_Regular.json', function (font) {
+						textGeometry = new THREE.TextGeometry('Africa', {
+							font: font,
+							size: 16,
+							height: 5,
+							curveSegments: 12,
+							bevelEnabled: true,
+							bevelThickness: 2,
+							bevelSize: 1,
+							bevelSegments: 5
+						})
+						var materialFonts = new THREE.MeshBasicMaterial(
+							{ color: 0x7777ff, wireframe: true })
+						var fontsObject = new THREE.Mesh(textGeometry, materialFonts);
+						// fontsObject.position.x = 1;
+						// fontsObject.position.y = 100;
+						// fontsObject.position.z = 40;
+						scene.add(fontsObject);
+					});
+
+				
+					pic.position.x = -100;
+					pic.position.y = 100;
+					pic.position.z = 40;
+					
+					object.add(pic);
+
+					scene.add(object);
+
+
+				});
+
+			// RENDER
+			renderer = new THREE.WebGLRenderer();
+
+			//Sets device pixel ratio. This is usually used for HiDPI
+			// device to prevent bluring output canvas.
+			renderer.setPixelRatio(window.devicePixelRatio);
+			//Background color
+			renderer.setClearColor(0x800000);
+			// Resizes the renderer to (width, height).
+			renderer.setSize(window.innerWidth, window.innerHeight);
+			container.appendChild(renderer.domElement);
+			document.addEventListener('mousemove', onDocumentMouseMove, false);
+			window.addEventListener('resize', onWindowResize, false);
+
+
+
+		}
+		function onWindowResize() {
+			windowHalfX = window.innerWidth / 2;
+			windowHalfY = window.innerHeight / 2;
+			camera.aspect = window.innerWidth / window.innerHeight;
+			camera.updateProjectionMatrix();
+			renderer.setSize(window.innerWidth, window.innerHeight);
+		}
+		function onDocumentMouseMove(event) {
+			mouseX = (event.clientX - windowHalfX) / 2;
+			mouseY = (event.clientY - windowHalfY) / 2;
+		}
+		function onMouseDown() {
+			console.log('you did click!')
+		}
+		document.addEventListener('mousedown', onMouseDown, false);
+		function animate() {
+			//automatic update page
+			requestAnimationFrame(animate);
+			render();
+		}
+		function render() {
+			// camera.position.x += ( mouseX - camera.position.x ) * .05;
+			// camera.position.y += ( - mouseY - camera.position.y ) * .05;
+			// camera.lookAt( scene.position );
+			scene.rotation.y += 0.01;
+			scene.rotation.z +=0.01;
+		
+			renderer.render(scene, camera);
+		}
+	</script>
+
+</body>
+
+</html>
